@@ -43,6 +43,13 @@ export default function PaymentScheduleModal({
            paymentDate.getFullYear() === now.getFullYear();
   });
 
+  // 이번 주와 다음 주에 포함되지 않는 결제들을 "다가오는 결제"로 분류
+  const thisWeekAndNextWeek = [...thisWeek, ...nextWeek];
+  const upcomingPaymentsSorted = upcomingPayments
+    .filter(payment => !thisWeekAndNextWeek.some(weekPayment => weekPayment.id === payment.id))
+    .sort((a, b) => new Date(a.nextPayment).getTime() - new Date(b.nextPayment).getTime())
+    .slice(0, 3);
+
   const formatDate = (date: Date) => {
     return `${date.getMonth() + 1}월 ${date.getDate()}일`;
   };
@@ -119,10 +126,12 @@ export default function PaymentScheduleModal({
                 nextWeek,
                 <Calendar size={20} color="#10B981" strokeWidth={2} />
               )}
-              {renderPaymentGroup(
-                '이번 달',
-                thisMonth,
-                <DollarSign size={20} color="#0066FF" strokeWidth={2} />
+              {upcomingPaymentsSorted.length > 0 && (
+                renderPaymentGroup(
+                  '다가오는 결제',
+                  upcomingPaymentsSorted,
+                  <DollarSign size={20} color="#0066FF" strokeWidth={2} />
+                )
               )}
             </>
           )}
@@ -174,6 +183,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 16,
   },
   emptyState: {
     alignItems: 'center',

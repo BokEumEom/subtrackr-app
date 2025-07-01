@@ -9,6 +9,7 @@ interface StatCardProps {
   color: string;
   backgroundColor: string;
   onPress?: () => void;
+  valueType?: 'currency' | 'count' | 'default';
 }
 
 export default function StatCard({ 
@@ -18,9 +19,22 @@ export default function StatCard({
   icon: IconComponent, 
   color, 
   backgroundColor,
-  onPress
+  onPress,
+  valueType = 'default'
 }: StatCardProps) {
   const CardComponent = onPress ? TouchableOpacity : View;
+  
+  // 값 타입에 따른 스타일 결정
+  const getValueStyle = () => {
+    switch (valueType) {
+      case 'currency':
+        return styles.valueCurrency;
+      case 'count':
+        return styles.valueCount;
+      default:
+        return styles.value;
+    }
+  };
   
   return (
     <CardComponent 
@@ -33,7 +47,7 @@ export default function StatCard({
           <IconComponent size={22} color={color} strokeWidth={2} />
         </View>
       </View>
-      <Text style={styles.value}>{value}</Text>
+      <Text style={getValueStyle()}>{value}</Text>
       <Text style={styles.title}>{title}</Text>
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
     </CardComponent>
@@ -65,6 +79,20 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 6,
+    letterSpacing: -0.8,
+  },
+  valueCurrency: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 6,
+    letterSpacing: -0.5,
+  },
+  valueCount: {
+    fontSize: 24,
     fontWeight: '800',
     color: '#0F172A',
     marginBottom: 6,

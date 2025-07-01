@@ -1,5 +1,5 @@
-import { Subscription, SpendingData, MonthlyData } from '@/types/subscription';
 import { CATEGORIES } from '@/constants/categories';
+import { SpendingData, Subscription } from '@/types/subscription';
 
 export const calculateMonthlyTotal = (subscriptions: Subscription[]): number => {
   return subscriptions
@@ -92,4 +92,57 @@ export const calculateNextPaymentDate = (interval: string): Date => {
     default:
       return new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
   }
+};
+
+export const calculateNextPaymentDateFromBase = (
+  baseDate: Date, 
+  interval: 'weekly' | 'monthly' | 'yearly'
+): Date => {
+  const now = new Date();
+  let nextPayment = new Date(baseDate);
+  
+  if (nextPayment > now) {
+    return nextPayment;
+  }
+  
+  switch (interval) {
+    case 'weekly':
+      while (nextPayment <= now) {
+        nextPayment.setDate(nextPayment.getDate() + 7);
+      }
+      break;
+      
+    case 'monthly':
+      const monthlyBaseDay = baseDate.getDate();
+      nextPayment = new Date(now.getFullYear(), now.getMonth(), monthlyBaseDay);
+      
+      if (nextPayment <= now) {
+        nextPayment = new Date(now.getFullYear(), now.getMonth() + 1, monthlyBaseDay);
+      }
+      break;
+      
+    case 'yearly':
+      const yearlyBaseMonth = baseDate.getMonth();
+      const yearlyBaseDay = baseDate.getDate();
+      nextPayment = new Date(now.getFullYear(), yearlyBaseMonth, yearlyBaseDay);
+      
+      if (nextPayment <= now) {
+        nextPayment = new Date(now.getFullYear() + 1, yearlyBaseMonth, yearlyBaseDay);
+      }
+      break;
+  }
+  
+  return nextPayment;
+};
+
+export const updateNextPaymentDate = (subscription: Subscription): Subscription => {
+  const updatedNextPayment = calculateNextPaymentDateFromBase(
+    subscription.nextPayment, 
+    subscription.interval
+  );
+  
+  return {
+    ...subscription,
+    nextPayment: updatedNextPayment
+  };
 };

@@ -2,8 +2,8 @@ import AddSubscriptionModal from '@/components/AddSubscriptionModal';
 import PaymentScheduleModal from '@/components/PaymentScheduleModal';
 import StatCard from '@/components/StatCard';
 import SubscriptionCard from '@/components/SubscriptionCard';
+import { useSubscriptions } from '@/contexts/SubscriptionContext';
 import { useProfile } from '@/hooks/useProfile';
-import { useSubscriptions } from '@/hooks/useSubscriptions';
 import { Subscription } from '@/types/subscription';
 import {
   calculateMonthlyTotal,
@@ -189,6 +189,7 @@ export default function Dashboard() {
               icon={DollarSign}
               color="#10B981"
               backgroundColor="#FFFFFF"
+              valueType="currency"
             />
             <StatCard
               title="이번 주 결제"
@@ -196,6 +197,7 @@ export default function Dashboard() {
               icon={Clock}
               color="#F59E0B"
               backgroundColor="#FFFFFF"
+              valueType="count"
             />
           </View>
         </Animated.View>

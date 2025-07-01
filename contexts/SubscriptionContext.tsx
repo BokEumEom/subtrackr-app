@@ -1,8 +1,19 @@
 import { Subscription } from '@/types/subscription';
 import { loadSubscriptions, saveSubscriptions } from '@/utils/storage';
-import { useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export function useSubscriptions() {
+interface SubscriptionContextType {
+  subscriptions: Subscription[];
+  loading: boolean;
+  addSubscription: (subscription: Subscription) => Promise<void>;
+  updateSubscription: (id: string, updates: Partial<Subscription>) => Promise<void>;
+  deleteSubscription: (id: string) => Promise<void>;
+  reload: () => void;
+}
+
+const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
+
+export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,7 +74,7 @@ export function useSubscriptions() {
     loadData();
   };
 
-  return {
+  const value = {
     subscriptions,
     loading,
     addSubscription,
@@ -71,4 +82,18 @@ export function useSubscriptions() {
     deleteSubscription,
     reload,
   };
+
+  return (
+    <SubscriptionContext.Provider value={value}>
+      {children}
+    </SubscriptionContext.Provider>
+  );
+}
+
+export function useSubscriptions() {
+  const context = useContext(SubscriptionContext);
+  if (context === undefined) {
+    throw new Error('useSubscriptions must be used within a SubscriptionProvider');
+  }
+  return context;
 } 

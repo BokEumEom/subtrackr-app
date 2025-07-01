@@ -2,7 +2,7 @@ import ProfileEditModal, { ProfileData } from '@/components/ProfileEditModal';
 import { useProfile } from '@/hooks/useProfile';
 import { Subscription } from '@/types/subscription';
 import { loadSubscriptions, saveSubscriptions } from '@/utils/storage';
-import { Bell, ChevronRight, Download, CreditCard as Edit, CircleHelp as HelpCircle, Info, Mail, Moon, Shield, Star, Trash2, User } from 'lucide-react-native';
+import { Bell, ChevronRight, Download, UserRoundPen as Edit, CircleHelp as HelpCircle, Info, Mail, Moon, Shield, Star, Trash2, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -410,7 +410,7 @@ export default function Settings() {
             <View style={styles.settingCard}>
               <TouchableOpacity 
                 style={styles.settingItem}
-                onPress={() => Alert.alert('앱 정보', 'SubTrackr v1.0.0\n\n토스 스타일로 제작된 아름다운 구독 지출 관리 앱입니다.')}
+                onPress={() => Alert.alert('앱 정보', 'SubTrackr v1.0.0\n\n구독 지출 관리 앱입니다.')}
                 activeOpacity={0.8}
               >
                 <View style={styles.settingLeft}>

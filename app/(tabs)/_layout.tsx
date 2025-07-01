@@ -1,9 +1,11 @@
+import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { Tabs } from 'expo-router';
-import { ChartColumnBig as ChartBar, CreditCard, ChartPie as PieChart, Settings, House as Home } from 'lucide-react-native';
+import { CreditCard, House as Home, ChartPie as PieChart, Settings } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
-    <Tabs
+    <SubscriptionProvider>
+      <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#0066FF',
@@ -67,6 +69,7 @@ export default function TabLayout() {
           ),
         }}
       />
-    </Tabs>
+      </Tabs>
+    </SubscriptionProvider>
   );
 }

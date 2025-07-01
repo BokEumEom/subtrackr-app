@@ -1,6 +1,6 @@
 import AddSubscriptionModal from '@/components/AddSubscriptionModal';
 import SubscriptionCard from '@/components/SubscriptionCard';
-import { useSubscriptions } from '@/hooks/useSubscriptions';
+import { useSubscriptions } from '@/contexts/SubscriptionContext';
 import { Subscription } from '@/types/subscription';
 import { calculateMonthlyTotal, formatCurrency } from '@/utils/calculations';
 import { Filter, Plus, Search, X } from 'lucide-react-native';

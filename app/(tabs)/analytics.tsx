@@ -411,7 +411,10 @@ export default function Analytics() {
                   <View style={styles.categoryInfo}>
                     <View style={[styles.categoryColorDot, { backgroundColor: item.color }]} />
                     <View style={styles.categoryDetails}>
-                      <Text style={styles.categoryName}>{item.category}</Text>
+                      <View style={styles.categoryItemHeader}>
+                        <Text style={styles.categoryName}>{item.category}</Text>
+                        <Text style={styles.categoryAmount}>{formatCurrency(item.amount)}</Text>
+                      </View>
                       <View style={styles.categoryProgress}>
                         <View style={styles.progressBar}>
                           <View 
@@ -428,7 +431,6 @@ export default function Analytics() {
                       </View>
                     </View>
                   </View>
-                  <Text style={styles.categoryAmount}>{formatCurrency(item.amount)}</Text>
                 </Animated.View>
               ))}
             </View>
@@ -670,11 +672,16 @@ const styles = StyleSheet.create({
   categoryDetails: {
     flex: 1,
   },
+  categoryItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   categoryName: {
     fontSize: 16,
     color: '#191F28',
     fontWeight: '600',
-    marginBottom: 8,
   },
   categoryProgress: {
     flexDirection: 'row',
@@ -699,7 +706,7 @@ const styles = StyleSheet.create({
     minWidth: 40,
   },
   categoryAmount: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#191F28',
     fontWeight: '700',
     letterSpacing: -0.2,
