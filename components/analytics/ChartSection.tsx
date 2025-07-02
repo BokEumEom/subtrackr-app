@@ -1,9 +1,7 @@
 import { ChartLine as Activity, ChartColumnBig as BarChart3 } from 'lucide-react-native';
 import React from 'react';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { BarChart, LineChart } from 'react-native-chart-kit';
-
-const { width } = Dimensions.get('window');
 
 type ChartType = 'bar' | 'trend';
 
@@ -25,6 +23,11 @@ export default function ChartSection({
   categorySpending,
   monthlyTotal,
 }: ChartSectionProps) {
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // 차트 width 계산 - 컨테이너 패딩을 고려한 반응형 계산
+  const chartWidth = Math.max(screenWidth - 80, 280); // 최소 280px 보장
+
   // 가상의 트렌드 데이터
   const trendData = {
     labels: ['1월', '2월', '3월', '4월', '5월', '6월'],
@@ -36,8 +39,6 @@ export default function ChartSection({
       },
     ],
   };
-
-
 
   // Prepare data for bar chart
   const barChartData = {
@@ -92,7 +93,7 @@ export default function ChartSection({
         {selectedChart === 'bar' && (
           <BarChart
             data={barChartData}
-            width={width - 40}
+            width={chartWidth}
             height={240}
             yAxisLabel=""
             yAxisSuffix=""
@@ -121,7 +122,7 @@ export default function ChartSection({
         {selectedChart === 'trend' && (
           <LineChart
             data={trendData}
-            width={width - 40}
+            width={chartWidth}
             height={240}
             chartConfig={{
               backgroundColor: '#FFFFFF',
