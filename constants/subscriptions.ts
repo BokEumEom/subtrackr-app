@@ -10,9 +10,9 @@ export const ANIMATION_CONSTANTS = {
 // FlatList 성능 최적화 상수
 export const FLATLIST_CONSTANTS = {
   ITEM_HEIGHT: 120,
-  INITIAL_NUM_TO_RENDER: 10,
-  MAX_TO_RENDER_PER_BATCH: 10,
-  WINDOW_SIZE: 10,
+  INITIAL_NUM_TO_RENDER: 15,
+  MAX_TO_RENDER_PER_BATCH: 15,
+  WINDOW_SIZE: 15,
 } as const;
 
 // 정렬 옵션

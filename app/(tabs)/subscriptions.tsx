@@ -30,6 +30,12 @@ export default function Subscriptions() {
   const [sortBy, setSortBy] = useState<SortType>('date');
   const [showFilters, setShowFilters] = useState(true);
   
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const ITEMS_PER_PAGE = 20;
+  
   // 공통 훅 사용
   const { subscriptions, loading, addSubscription } = useSubscriptions();
   
@@ -52,6 +58,32 @@ export default function Subscriptions() {
     searchQuery,
     sortBy,
   });
+
+  // 페이지네이션된 데이터 계산
+  const paginatedSubscriptions = filteredAndSortedSubscriptions.slice(0, currentPage * ITEMS_PER_PAGE);
+
+  // 더 많은 데이터가 있는지 확인
+  useEffect(() => {
+    setHasMoreData(paginatedSubscriptions.length < filteredAndSortedSubscriptions.length);
+  }, [paginatedSubscriptions.length, filteredAndSortedSubscriptions.length]);
+
+  // 추가 데이터 로딩
+  const loadMoreData = () => {
+    if (isLoadingMore || !hasMoreData) return;
+    
+    setIsLoadingMore(true);
+    
+    // 실제 API 호출을 시뮬레이션 (로컬 데이터이므로 지연만 추가)
+    setTimeout(() => {
+      setCurrentPage(prev => prev + 1);
+      setIsLoadingMore(false);
+    }, 500);
+  };
+
+  // 필터/검색 변경 시 페이지 리셋
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, categoryFilter, searchQuery, sortBy]);
 
   // 이벤트 핸들러
   const handleAddSubscription = async (subscription: Subscription) => {
@@ -89,7 +121,7 @@ export default function Subscriptions() {
             onPress={() => setShowAddModal(true)}
             activeOpacity={0.8}
           >
-            <Plus size={20} color="#FFFFFF" strokeWidth={2} />
+            <Plus size={24} color="#0066FF" strokeWidth={2} />
           </TouchableOpacity>
         }
       />
@@ -126,6 +158,25 @@ export default function Subscriptions() {
       fadeAnim={fadeAnim}
     />
   );
+
+  // FlatList 푸터 컴포넌트 (로딩 인디케이터)
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    
+    return (
+      <View style={styles.loadingMoreContainer}>
+        <Animated.View style={[styles.loadingMoreSpinner, {
+          transform: [{
+            rotate: fadeAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['0deg', '360deg'],
+            })
+          }]
+        }]} />
+        <Text style={styles.loadingMoreText}>더 많은 구독 서비스를 불러오는 중...</Text>
+      </View>
+    );
+  };
 
   // FlatList 아이템 렌더링
   const renderItem = ({ item, index }: { item: Subscription; index: number }) => (
@@ -169,11 +220,12 @@ export default function Subscriptions() {
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={filteredAndSortedSubscriptions}
+        data={paginatedSubscriptions}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyComponent}
+        ListFooterComponent={renderFooter}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
         getItemLayout={(data, index) => ({
@@ -185,6 +237,8 @@ export default function Subscriptions() {
         maxToRenderPerBatch={FLATLIST_CONSTANTS.MAX_TO_RENDER_PER_BATCH}
         windowSize={FLATLIST_CONSTANTS.WINDOW_SIZE}
         removeClippedSubviews={true}
+        onEndReached={loadMoreData}
+        onEndReachedThreshold={0.1}
       />
 
       <AddSubscriptionModal
@@ -205,10 +259,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   addButton: {
-    backgroundColor: '#0066FF',
-    borderRadius: 12,
-    width: 44,
-    height: 44,
+    backgroundColor: '#F0F6FF',
+    borderRadius: 24,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -228,6 +282,26 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   loadingText: {
+    fontSize: 16,
+    color: '#4E5968',
+    fontWeight: '600',
+  },
+  loadingMoreContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  loadingMoreSpinner: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: '#E5E7EB',
+    borderTopColor: '#0066FF',
+    marginBottom: 16,
+  },
+  loadingMoreText: {
     fontSize: 16,
     color: '#4E5968',
     fontWeight: '600',
