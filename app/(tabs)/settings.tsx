@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     color: '#191F28',
     fontWeight: '700',
     letterSpacing: -0.5,

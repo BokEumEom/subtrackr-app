@@ -1,3 +1,4 @@
+import ChartSection from '@/components/analytics/ChartSection';
 import { Subscription } from '@/types/subscription';
 import {
   calculateCategorySpending,
@@ -7,11 +8,10 @@ import {
 } from '@/utils/calculations';
 import { loadSubscriptions } from '@/utils/storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { Activity, ArrowDownRight, ArrowUpRight, ChartBar as BarChart3, Calendar, DollarSign, ChartPie as PieChartIcon, Target, TrendingUp } from 'lucide-react-native';
+import { ArrowDownRight, ArrowUpRight, Calendar, DollarSign, Target, TrendingUp } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
-  Dimensions,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -19,9 +19,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { BarChart, LineChart, PieChart } from 'react-native-chart-kit';
 
-const { width } = Dimensions.get('window');
+
 
 type TimeRange = '1M' | '3M' | '6M' | '1Y';
 
@@ -29,7 +28,7 @@ export default function Analytics() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('1M');
-  const [selectedChart, setSelectedChart] = useState<'pie' | 'bar' | 'trend'>('pie');
+  const [selectedChart, setSelectedChart] = useState<'bar' | 'trend'>('bar');
   
   // Animated.Value를 useRef로 관리하여 재생성 방지
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -80,39 +79,7 @@ export default function Analytics() {
   const activeSubscriptions = subscriptions.filter(sub => sub.status === 'subscribed');
   const categorySpending = calculateCategorySpending(subscriptions);
 
-  // 가상의 트렌드 데이터
-  const trendData = {
-    labels: ['1월', '2월', '3월', '4월', '5월', '6월'],
-    datasets: [
-      {
-        data: [monthlyTotal * 0.8, monthlyTotal * 0.9, monthlyTotal * 1.1, monthlyTotal * 0.95, monthlyTotal * 1.05, monthlyTotal],
-        color: (opacity = 1) => `rgba(0, 102, 255, ${opacity})`,
-        strokeWidth: 3,
-      },
-    ],
-  };
 
-  // Prepare data for pie chart
-  const pieChartData = categorySpending.map((item, index) => ({
-    name: item.category,
-    population: item.amount,
-    color: item.color,
-    legendFontColor: '#8B95A1',
-    legendFontSize: 13,
-  }));
-
-  // Prepare data for bar chart
-  const barChartData = {
-    labels: categorySpending.slice(0, 5).map(item => 
-      item.category.length > 6 ? item.category.substring(0, 6) + '..' : item.category
-    ),
-    datasets: [
-      {
-        data: categorySpending.slice(0, 5).map(item => item.amount),
-        colors: categorySpending.slice(0, 5).map((item, index) => () => item.color),
-      },
-    ],
-  };
 
   const averageCost = activeSubscriptions.length > 0 
     ? monthlyTotal / activeSubscriptions.length 
@@ -125,11 +92,7 @@ export default function Analytics() {
     { key: '1Y' as TimeRange, label: '1년' },
   ];
 
-  const chartTypes = [
-    { key: 'pie' as const, label: '카테고리', icon: PieChartIcon },
-    { key: 'bar' as const, label: '비교', icon: BarChart3 },
-    { key: 'trend' as const, label: '트렌드', icon: Activity },
-  ];
+
 
   const keyMetrics = [
     {
@@ -273,116 +236,16 @@ export default function Analytics() {
 
         {/* 차트 섹션 */}
         {categorySpending.length > 0 && (
-          <Animated.View style={[styles.chartSection, { 
+          <Animated.View style={{ 
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }] 
-          }]}>
-            <View style={styles.chartHeader}>
-              <Text style={styles.sectionTitle}>지출 분석</Text>
-              <View style={styles.chartTypeSelector}>
-                {chartTypes.map((type) => (
-                  <TouchableOpacity
-                    key={type.key}
-                    style={[
-                      styles.chartTypeButton,
-                      selectedChart === type.key && styles.chartTypeButtonActive,
-                    ]}
-                    onPress={() => setSelectedChart(type.key)}
-                    activeOpacity={0.8}
-                  >
-                    <type.icon 
-                      size={16} 
-                      color={selectedChart === type.key ? "#FFFFFF" : "#8B95A1"} 
-                      strokeWidth={2} 
-                    />
-                    <Text style={[
-                      styles.chartTypeText,
-                      selectedChart === type.key && styles.chartTypeTextActive,
-                    ]}>
-                      {type.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.chartContainer}>
-              {selectedChart === 'pie' && (
-                <PieChart
-                  data={pieChartData}
-                  width={width - 40}
-                  height={240}
-                  chartConfig={{
-                    backgroundColor: '#FFFFFF',
-                    backgroundGradientFrom: '#FFFFFF',
-                    backgroundGradientTo: '#FFFFFF',
-                    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                  }}
-                  accessor="population"
-                  backgroundColor="transparent"
-                  paddingLeft="15"
-                  absolute
-                />
-              )}
-
-              {selectedChart === 'bar' && (
-                <BarChart
-                  data={barChartData}
-                  width={width - 40}
-                  height={240}
-                  yAxisLabel=""
-                  yAxisSuffix=""
-                  chartConfig={{
-                    backgroundColor: '#FFFFFF',
-                    backgroundGradientFrom: '#FFFFFF',
-                    backgroundGradientTo: '#FFFFFF',
-                    decimalPlaces: 0,
-                    color: (opacity = 1) => `rgba(0, 102, 255, ${opacity})`,
-                    labelColor: (opacity = 1) => `rgba(139, 149, 161, ${opacity})`,
-                    style: { borderRadius: 16 },
-                    propsForBackgroundLines: {
-                      strokeDasharray: '',
-                      stroke: '#F1F3F4',
-                      strokeWidth: 1,
-                    },
-                  }}
-                  style={styles.chart}
-                  withCustomBarColorFromData
-                  flatColor
-                  showBarTops={false}
-                  fromZero
-                />
-              )}
-
-              {selectedChart === 'trend' && (
-                <LineChart
-                  data={trendData}
-                  width={width - 40}
-                  height={240}
-                  chartConfig={{
-                    backgroundColor: '#FFFFFF',
-                    backgroundGradientFrom: '#FFFFFF',
-                    backgroundGradientTo: '#FFFFFF',
-                    decimalPlaces: 0,
-                    color: (opacity = 1) => `rgba(0, 102, 255, ${opacity})`,
-                    labelColor: (opacity = 1) => `rgba(139, 149, 161, ${opacity})`,
-                    style: { borderRadius: 16 },
-                    propsForDots: {
-                      r: "6",
-                      strokeWidth: "3",
-                      stroke: "#0066FF"
-                    },
-                    propsForBackgroundLines: {
-                      strokeDasharray: '',
-                      stroke: '#F1F3F4',
-                      strokeWidth: 1,
-                    },
-                  }}
-                  bezier
-                  style={styles.chart}
-                />
-              )}
-            </View>
+          }}>
+            <ChartSection
+              selectedChart={selectedChart}
+              onChartTypeChange={setSelectedChart}
+              categorySpending={categorySpending}
+              monthlyTotal={monthlyTotal}
+            />
           </Animated.View>
         )}
 
@@ -531,7 +394,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   metricCard: {
-    width: (width - 52) / 2,
+    width: '48%',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
@@ -578,61 +441,11 @@ const styles = StyleSheet.create({
     color: '#8B95A1',
     fontWeight: '500',
   },
-  chartSection: {
-    marginBottom: 32,
-  },
-  chartHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
   sectionTitle: {
     fontSize: 18,
     color: '#191F28',
     fontWeight: '700',
     letterSpacing: -0.2,
-  },
-  chartTypeSelector: {
-    flexDirection: 'row',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 4,
-    gap: 4,
-  },
-  chartTypeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-  },
-  chartTypeButtonActive: {
-    backgroundColor: '#0066FF',
-  },
-  chartTypeText: {
-    fontSize: 12,
-    color: '#8B95A1',
-    fontWeight: '600',
-  },
-  chartTypeTextActive: {
-    color: '#FFFFFF',
-  },
-  chartContainer: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  chart: {
-    borderRadius: 16,
   },
   categorySection: {
     marginBottom: 32,
