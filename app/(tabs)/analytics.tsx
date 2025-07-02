@@ -1,4 +1,5 @@
 import ChartSection from '@/components/analytics/ChartSection';
+import TabHeader from '@/components/common/TabHeader';
 import { Subscription } from '@/types/subscription';
 import {
   calculateCategorySpending,
@@ -19,8 +20,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
-
 
 type TimeRange = '1M' | '3M' | '6M' | '1Y';
 
@@ -79,8 +78,6 @@ export default function Analytics() {
   const activeSubscriptions = subscriptions.filter(sub => sub.status === 'subscribed');
   const categorySpending = calculateCategorySpending(subscriptions);
 
-
-
   const averageCost = activeSubscriptions.length > 0 
     ? monthlyTotal / activeSubscriptions.length 
     : 0;
@@ -91,8 +88,6 @@ export default function Analytics() {
     { key: '6M' as TimeRange, label: '6개월' },
     { key: '1Y' as TimeRange, label: '1년' },
   ];
-
-
 
   const keyMetrics = [
     {
@@ -153,11 +148,13 @@ export default function Analytics() {
         style={[styles.scrollView, { opacity: fadeAnim }]} 
         showsVerticalScrollIndicator={false}
       >
-        {/* 토스 스타일 헤더 */}
-        <Animated.View style={[styles.header, { transform: [{ translateY: slideAnim }] }]}>
-          <Text style={styles.title}>분석</Text>
-          <Text style={styles.subtitle}>구독 지출을 한눈에 확인해보세요</Text>
-        </Animated.View>
+        {/* 공통 헤더 사용 */}
+        <TabHeader
+          title="분석"
+          subtitle="구독 지출을 한눈에 확인해보세요"
+          fadeAnim={fadeAnim}
+          slideAnim={slideAnim}
+        />
 
         {/* 시간 범위 선택 */}
         <Animated.View style={[styles.timeRangeSection, { 
@@ -386,7 +383,7 @@ const styles = StyleSheet.create({
   },
   metricsSection: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingVertical: 12,
   },
   metricsGrid: {
     flexDirection: 'row',

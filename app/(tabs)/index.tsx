@@ -2,6 +2,7 @@ import AddSubscriptionModal from '@/components/AddSubscriptionModal';
 import PaymentScheduleModal from '@/components/PaymentScheduleModal';
 import StatCard from '@/components/StatCard';
 import SubscriptionCard from '@/components/SubscriptionCard';
+import TabHeader from '@/components/common/TabHeader';
 import { useSubscriptions } from '@/contexts/SubscriptionContext';
 import { useProfile } from '@/hooks/useProfile';
 import { Subscription } from '@/types/subscription';
@@ -12,11 +13,10 @@ import {
   getUpcomingPayments,
 } from '@/utils/calculations';
 import { router } from 'expo-router';
-import { ArrowRight, Bell, Calendar, Clock, CreditCard, DollarSign, ChartPie as PieChart, Plus, TrendingUp, User } from 'lucide-react-native';
+import { ArrowRight, Calendar, Clock, CreditCard, DollarSign, ChartPie as PieChart, Plus, TrendingUp } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
-  Image,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -103,31 +103,24 @@ export default function Dashboard() {
         style={[styles.scrollView, { opacity: fadeAnim }]} 
         showsVerticalScrollIndicator={false}
       >
-        {/* 토스 스타일 헤더 */}
-        <Animated.View style={[styles.header, { transform: [{ translateY: slideAnim }] }]}>
-          <View style={styles.headerTop}>
-            <View style={styles.headerLeft}>
-              <Text style={styles.title}>홈</Text>
-              <Text style={styles.subtitle}>안녕하세요, {profile.name}님</Text>
-            </View>
-            <View style={styles.headerRight}>
-              <TouchableOpacity style={styles.iconButton} activeOpacity={0.8}>
-                <Bell size={24} color="#191F28" strokeWidth={1.5} />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.iconButton} 
-                onPress={handleProfilePress}
-                activeOpacity={0.8}
-              >
-                {profile.profileImage ? (
-                  <Image source={{ uri: profile.profileImage }} style={styles.profileImage} />
-                ) : (
-                  <User size={24} color="#191F28" strokeWidth={1.5} />
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Animated.View>
+        {/* 공통 헤더 사용 */}
+        <TabHeader
+          title="홈"
+          subtitle={`안녕하세요, ${profile.name}님`}
+          fadeAnim={fadeAnim}
+          slideAnim={slideAnim}
+          rightActions={[
+            {
+              type: 'notification',
+              onPress: () => console.log('알림'),
+            },
+            {
+              type: 'profile',
+              onPress: handleProfilePress,
+              profileImage: profile.profileImage,
+            },
+          ]}
+        />
 
         {/* 토스 스타일 메인 카드 */}
         <Animated.View style={[styles.mainCard, { transform: [{ translateY: slideAnim }] }]}>
@@ -206,7 +199,7 @@ export default function Dashboard() {
         {upcomingPayments.length > 0 && (
           <Animated.View style={[styles.section, { transform: [{ translateY: slideAnim }] }]}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>곧 결제될 구독</Text>
+              <Text style={styles.sectionTitle}>곧 결제될 구독 서비스</Text>
               <TouchableOpacity 
                 style={styles.seeAllButton} 
                 onPress={() => router.push('/(tabs)/subscriptions')}
@@ -241,7 +234,7 @@ export default function Dashboard() {
         {activeSubscriptions.length > 0 ? (
           <Animated.View style={[styles.section, { transform: [{ translateY: slideAnim }] }]}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>구독 중인 서비스</Text>
+              <Text style={styles.sectionTitle}>최근 구독 중인 서비스</Text>
               <TouchableOpacity 
                 style={styles.seeAllButton} 
                 onPress={() => router.push('/(tabs)/subscriptions')}
@@ -301,7 +294,7 @@ export default function Dashboard() {
       <PaymentScheduleModal
         visible={showPaymentScheduleModal}
         onClose={() => setShowPaymentScheduleModal(false)}
-        subscriptions={subscriptions}
+        subscriptions={upcomingPayments}
       />
     </SafeAreaView>
   );
@@ -498,7 +491,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   cardList: {
-    gap: 8,
+    gap: 2,
   },
   emptyState: {
     alignItems: 'center',

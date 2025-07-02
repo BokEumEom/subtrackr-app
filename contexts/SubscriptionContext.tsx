@@ -26,7 +26,53 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     try {
       setLoading(true);
       const data = await loadSubscriptions();
-      setSubscriptions(data);
+      
+      // 테스트용 샘플 데이터 (데이터가 없을 때만 추가)
+      if (data.length === 0) {
+        const sampleData: Subscription[] = [
+          {
+            id: '1',
+            name: 'Netflix',
+            description: '스트리밍 서비스',
+            cost: 17000,
+            currency: 'KRW',
+            interval: 'monthly',
+            category: 'entertainment',
+            status: 'subscribed',
+            nextPayment: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
+            createdAt: new Date(),
+          },
+          {
+            id: '2',
+            name: 'Spotify',
+            description: '음악 스트리밍',
+            cost: 13900,
+            currency: 'KRW',
+            interval: 'monthly',
+            category: 'entertainment',
+            status: 'subscribed',
+            nextPayment: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14일 후
+            createdAt: new Date(),
+          },
+          {
+            id: '3',
+            name: 'Notion',
+            description: '노트 앱',
+            cost: 8000,
+            currency: 'KRW',
+            interval: 'monthly',
+            category: 'productivity',
+            status: 'subscribed',
+            nextPayment: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000), // 21일 후
+            createdAt: new Date(),
+          },
+        ];
+        
+        await saveSubscriptions(sampleData);
+        setSubscriptions(sampleData);
+      } else {
+        setSubscriptions(data);
+      }
     } catch (error) {
       console.error('구독 데이터 로딩 오류:', error);
     } finally {

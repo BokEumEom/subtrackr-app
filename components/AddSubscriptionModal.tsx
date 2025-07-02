@@ -2,19 +2,18 @@ import { CATEGORIES } from '@/constants/categories';
 import { Subscription } from '@/types/subscription';
 import { addSubscription } from '@/utils/storage';
 import { Calendar, ChevronDown, X } from 'lucide-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Animated,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import DatePickerModal from './DatePickerModal';
 
@@ -33,41 +32,12 @@ export default function AddSubscriptionModal({ visible, onClose, onAdd }: AddSub
   const [description, setDescription] = useState('');
   const [nextPayment, setNextPayment] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  
-  // Animated.Value를 useRef로 관리하여 재생성 방지
-  const slideAnim = useRef(new Animated.Value(300)).current;
-  const overlayAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      Animated.parallel([
-        Animated.timing(overlayAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          useNativeDriver: true,
-          tension: 100,
-          friction: 8,
-        }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(overlayAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 300,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      resetForm();
     }
-  }, [visible, overlayAnim, slideAnim]);
+  }, [visible]);
 
   const resetForm = () => {
     setName('');
@@ -128,153 +98,204 @@ export default function AddSubscriptionModal({ visible, onClose, onAdd }: AddSub
   };
 
   return (
-    <Modal visible={visible} animationType="none" transparent>
-      <Animated.View style={[styles.overlay, { opacity: overlayAnim }]}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <View style={styles.container}>
+        {/* 헤더 */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Text style={styles.title}>구독 서비스 추가</Text>
+            <Text style={styles.subtitle}>새로운 구독 서비스를 등록하세요</Text>
+          </View>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <X size={24} color="#8B95A1" strokeWidth={2} />
+          </TouchableOpacity>
+        </View>
+
+        {/* 내용 */}
         <KeyboardAvoidingView 
-          style={styles.keyboardView}
+          style={styles.keyboardAvoidingView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <Animated.View style={[styles.container, { transform: [{ translateY: slideAnim }] }]}>
-            {/* 토스 스타일 헤더 */}
-            <View style={styles.header}>
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <X size={24} color="#8B95A1" strokeWidth={2} />
-              </TouchableOpacity>
-              <Text style={styles.title}>구독 서비스 추가</Text>
-              <TouchableOpacity onPress={handleAdd} style={styles.addButton}>
-                <Text style={styles.addButtonText}>완료</Text>
-              </TouchableOpacity>
-            </View>
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            <View style={styles.form}>
+              {/* 서비스 이름 */}
+              <View style={styles.field}>
+                <Text style={styles.label}>서비스 이름</Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="예: 넷플릭스, 스포티파이"
+                    placeholderTextColor="#8B95A1"
+                  />
+                </View>
+              </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-              <View style={styles.form}>
-                {/* 서비스 이름 */}
-                <View style={styles.field}>
-                  <Text style={styles.label}>서비스 이름</Text>
+              {/* 비용과 통화 */}
+              <View style={styles.row}>
+                <View style={[styles.field, { flex: 2 }]}>
+                  <Text style={styles.label}>비용</Text>
                   <View style={styles.inputContainer}>
                     <TextInput
                       style={styles.input}
-                      value={name}
-                      onChangeText={setName}
-                      placeholder="예: 넷플릭스, 스포티파이"
+                      value={cost}
+                      onChangeText={setCost}
+                      placeholder="0"
                       placeholderTextColor="#8B95A1"
+                      keyboardType="numeric"
                     />
                   </View>
                 </View>
-
-                {/* 비용과 통화 */}
-                <View style={styles.row}>
-                  <View style={[styles.field, { flex: 2 }]}>
-                    <Text style={styles.label}>비용</Text>
-                    <View style={styles.inputContainer}>
-                      <TextInput
-                        style={styles.input}
-                        value={cost}
-                        onChangeText={setCost}
-                        placeholder="0"
-                        placeholderTextColor="#8B95A1"
-                        keyboardType="numeric"
-                      />
-                    </View>
-                  </View>
-                  <View style={[styles.field, { flex: 1, marginLeft: 12 }]}>
-                    <Text style={styles.label}>통화</Text>
-                    <View style={styles.pickerContainer}>
-                      <Text style={styles.pickerText}>{currency}</Text>
-                      <ChevronDown size={16} color="#8B95A1" strokeWidth={2} />
-                    </View>
-                  </View>
-                </View>
-
-                {/* 결제 주기 */}
-                <View style={styles.field}>
-                  <Text style={styles.label}>결제 주기</Text>
-                  <View style={styles.segmentedControl}>
-                    {(['weekly', 'monthly', 'yearly'] as const).map((option) => (
-                      <TouchableOpacity
-                        key={option}
-                        style={[
-                          styles.segmentedOption,
-                          interval === option && styles.segmentedOptionActive,
-                        ]}
-                        onPress={() => setInterval(option)}
-                        activeOpacity={0.8}
-                      >
-                        <Text
-                          style={[
-                            styles.segmentedText,
-                            interval === option && styles.segmentedTextActive,
-                          ]}
-                        >
-                          {option === 'weekly' ? '주간' : option === 'monthly' ? '월간' : '연간'}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-
-                {/* 카테고리 */}
-                <View style={styles.field}>
-                  <Text style={styles.label}>카테고리</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={styles.categoryRow}>
-                      {CATEGORIES.map((cat) => (
-                        <TouchableOpacity
-                          key={cat.id}
-                          style={[
-                            styles.categoryOption,
-                            { backgroundColor: cat.color + '10' },
-                            category === cat.id && { 
-                              backgroundColor: cat.color + '20',
-                              borderColor: cat.color,
-                              borderWidth: 2,
-                            },
-                          ]}
-                          onPress={() => setCategory(cat.id)}
-                          activeOpacity={0.8}
-                        >
-                          <cat.icon size={18} color={cat.color} strokeWidth={2} />
-                          <Text style={[styles.categoryText, { color: cat.color }]}>{cat.name}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </ScrollView>
-                </View>
-
-                {/* 메모 */}
-                <View style={styles.field}>
-                  <Text style={styles.label}>메모 (선택사항)</Text>
-                  <View style={styles.inputContainer}>
-                    <TextInput
-                      style={[styles.input, styles.textArea]}
-                      value={description}
-                      onChangeText={setDescription}
-                      placeholder="이 구독 서비스에 대한 메모를 추가하세요"
-                      placeholderTextColor="#8B95A1"
-                      multiline
-                      numberOfLines={3}
-                    />
-                  </View>
-                </View>
-
-                {/* 결제일 */}
-                <View style={styles.field}>
-                  <Text style={styles.label}>결제일</Text>
-                  <View style={styles.inputContainer}>
-                    <TouchableOpacity
-                      style={styles.datePickerButton}
-                      onPress={showDatePickerModal}
-                    >
-                      <Text style={styles.datePickerText}>{formatDate(nextPayment)}</Text>
-                      <Calendar size={20} color="#8B95A1" strokeWidth={2} />
-                    </TouchableOpacity>
+                <View style={[styles.field, { flex: 1, marginLeft: 12 }]}>
+                  <Text style={styles.label}>통화</Text>
+                  <View style={styles.pickerContainer}>
+                    <Text style={styles.pickerText}>{currency}</Text>
+                    <ChevronDown size={16} color="#8B95A1" strokeWidth={2} />
                   </View>
                 </View>
               </View>
-            </ScrollView>
-          </Animated.View>
+
+              {/* 결제 주기 */}
+              <View style={styles.field}>
+                <Text style={styles.label}>결제 주기</Text>
+                <View style={styles.segmentedControl}>
+                  <TouchableOpacity
+                    style={[
+                      styles.segmentedOption,
+                      interval === 'weekly' && styles.segmentedOptionActive,
+                    ]}
+                    onPress={() => setInterval('weekly')}
+                  >
+                    <Text
+                      style={[
+                        styles.segmentedText,
+                        interval === 'weekly' && styles.segmentedTextActive,
+                      ]}
+                    >
+                      주간
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.segmentedOption,
+                      interval === 'monthly' && styles.segmentedOptionActive,
+                    ]}
+                    onPress={() => setInterval('monthly')}
+                  >
+                    <Text
+                      style={[
+                        styles.segmentedText,
+                        interval === 'monthly' && styles.segmentedTextActive,
+                      ]}
+                    >
+                      월간
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.segmentedOption,
+                      interval === 'yearly' && styles.segmentedOptionActive,
+                    ]}
+                    onPress={() => setInterval('yearly')}
+                  >
+                    <Text
+                      style={[
+                        styles.segmentedText,
+                        interval === 'yearly' && styles.segmentedTextActive,
+                      ]}
+                    >
+                      연간
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* 카테고리 */}
+              <View style={styles.field}>
+                <Text style={styles.label}>카테고리</Text>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.categoryContainer}
+                >
+                  {CATEGORIES.map((categoryInfo) => (
+                    <TouchableOpacity
+                      key={categoryInfo.id}
+                      style={[
+                        styles.categoryOption,
+                        category === categoryInfo.id && {
+                          backgroundColor: categoryInfo.color + '20',
+                          borderColor: categoryInfo.color,
+                        },
+                      ]}
+                      onPress={() => setCategory(categoryInfo.id)}
+                    >
+                      <View
+                        style={[
+                          styles.categoryIcon,
+                          { backgroundColor: categoryInfo.color },
+                        ]}
+                      />
+                      <Text
+                        style={[
+                          styles.categoryText,
+                          category === categoryInfo.id && { color: categoryInfo.color },
+                        ]}
+                      >
+                        {categoryInfo.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* 설명 */}
+              <View style={styles.field}>
+                <Text style={styles.label}>설명 (선택사항)</Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    value={description}
+                    onChangeText={setDescription}
+                    placeholder="구독 서비스에 대한 설명을 입력하세요"
+                    placeholderTextColor="#8B95A1"
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                  />
+                </View>
+              </View>
+
+              {/* 결제일 */}
+              <View style={styles.field}>
+                <Text style={styles.label}>결제일</Text>
+                <View style={styles.inputContainer}>
+                  <TouchableOpacity
+                    style={styles.datePickerButton}
+                    onPress={showDatePickerModal}
+                  >
+                    <Text style={styles.datePickerText}>{formatDate(nextPayment)}</Text>
+                    <Calendar size={20} color="#8B95A1" strokeWidth={2} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+
+          {/* 하단 버튼 */}
+          <View style={styles.bottomButtonContainer}>
+            <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
+              <Text style={styles.addButtonText}>구독 서비스 추가</Text>
+            </TouchableOpacity>
+          </View>
         </KeyboardAvoidingView>
-      </Animated.View>
+      </View>
 
       {showDatePicker && (
         <DatePickerModal
@@ -289,72 +310,66 @@ export default function AddSubscriptionModal({ visible, onClose, onAdd }: AddSub
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  keyboardView: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
   container: {
+    flex: 1,
     backgroundColor: '#F9FAFB',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '90%',
-    minHeight: '60%',
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F3F4',
+    borderBottomColor: '#F1F5F9',
   },
-  closeButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#F9FAFB',
+  headerContent: {
+    flex: 1,
   },
   title: {
-    fontSize: 18,
+    fontSize: 24,
     color: '#191F28',
     fontWeight: '700',
-    letterSpacing: -0.2,
+    letterSpacing: -0.5,
+    marginBottom: 4,
   },
-  addButton: {
-    backgroundColor: '#0066FF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  addButtonText: {
+  subtitle: {
     fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: '#8B95A1',
+    fontWeight: '500',
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   content: {
     flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16,
   },
   form: {
-    padding: 20,
+    gap: 20,
   },
   field: {
-    marginBottom: 24,
+    gap: 8,
   },
   label: {
     fontSize: 16,
     color: '#191F28',
     fontWeight: '600',
-    marginBottom: 8,
-    letterSpacing: -0.1,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
   },
   inputContainer: {
     backgroundColor: '#FFFFFF',
@@ -374,11 +389,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  row: {
-    flexDirection: 'row',
+    minHeight: 80,
   },
   pickerContainer: {
     backgroundColor: '#FFFFFF',
@@ -429,8 +440,7 @@ const styles = StyleSheet.create({
     color: '#0066FF',
     fontWeight: '700',
   },
-  categoryRow: {
-    flexDirection: 'row',
+  categoryContainer: {
     paddingHorizontal: 4,
     gap: 12,
   },
@@ -444,9 +454,15 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     gap: 8,
   },
+  categoryIcon: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
   categoryText: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#8B95A1',
   },
   datePickerButton: {
     flexDirection: 'row',
@@ -467,5 +483,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#191F28',
     fontWeight: '500',
+  },
+  bottomButtonContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  addButton: {
+    backgroundColor: '#0066FF',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  addButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });

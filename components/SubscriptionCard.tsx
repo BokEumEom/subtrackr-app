@@ -107,7 +107,7 @@ export default SubscriptionCard;
 const styles = StyleSheet.create({
   card: {
     marginHorizontal: 20,
-    marginVertical: 4,
+    marginVertical: 6,
   },
   cardContent: {
     backgroundColor: '#FFFFFF',

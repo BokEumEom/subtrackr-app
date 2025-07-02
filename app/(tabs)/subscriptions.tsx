@@ -1,20 +1,23 @@
 import AddSubscriptionModal from '@/components/AddSubscriptionModal';
+import TabHeader from '@/components/common/TabHeader';
 import SubscriptionCard from '@/components/SubscriptionCard';
 import SubscriptionEmptyState from '@/components/subscriptions/SubscriptionEmptyState';
-import SubscriptionHeader from '@/components/subscriptions/SubscriptionHeader';
 import SubscriptionSearch from '@/components/subscriptions/SubscriptionSearch';
+import SubscriptionStats from '@/components/subscriptions/SubscriptionStats';
 import { ANIMATION_CONSTANTS, FLATLIST_CONSTANTS } from '@/constants/subscriptions';
 import { useSubscriptions } from '@/contexts/SubscriptionContext';
 import { usePageAnimation } from '@/hooks/usePageAnimation';
 import { CategoryFilter, FilterType, SortType, useSubscriptionFilters } from '@/hooks/useSubscriptionFilters';
 import { Subscription } from '@/types/subscription';
-import React, { useState } from 'react';
+import { Plus } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
 import {
   Animated,
   FlatList,
   SafeAreaView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -25,18 +28,21 @@ export default function Subscriptions() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortType>('date');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   
   // 공통 훅 사용
   const { subscriptions, loading, addSubscription } = useSubscriptions();
   
   // 애니메이션 훅 사용
-  const { fadeAnim, slideAnim } = usePageAnimation({
-    isVisible: !loading,
-    fadeDuration: ANIMATION_CONSTANTS.FADE_DURATION,
-    slideDuration: ANIMATION_CONSTANTS.SLIDE_DURATION,
-    slideDistance: ANIMATION_CONSTANTS.SLIDE_DISTANCE,
-  });
+  const { fadeAnim, slideAnim } = usePageAnimation(!loading);
+
+  // 애니메이션 초기값 설정 (로딩 완료 시 즉시 보이도록)
+  useEffect(() => {
+    if (!loading) {
+      fadeAnim.setValue(1);
+      slideAnim.setValue(0);
+    }
+  }, [loading, fadeAnim, slideAnim]);
 
   // 필터링 및 정렬 훅 사용
   const { filteredAndSortedSubscriptions, statusFilters, stats } = useSubscriptionFilters({
@@ -71,15 +77,32 @@ export default function Subscriptions() {
   // FlatList 헤더 컴포넌트
   const renderHeader = () => (
     <>
-      <SubscriptionHeader
+      {/* 공통 헤더 사용 */}
+      <TabHeader
         title="구독 관리"
         subtitle="구독 서비스를 관리해보세요"
+        fadeAnim={fadeAnim}
+        slideAnim={slideAnim}
+        rightContent={
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={() => setShowAddModal(true)}
+            activeOpacity={0.8}
+          >
+            <Plus size={20} color="#FFFFFF" strokeWidth={2} />
+          </TouchableOpacity>
+        }
+      />
+      
+      {/* 통계 정보 */}
+      <SubscriptionStats
         activeCount={stats.activeCount}
         totalMonthlySpend={stats.totalMonthlySpend}
-        onAddPress={() => setShowAddModal(true)}
         fadeAnim={fadeAnim}
         slideAnim={slideAnim}
       />
+      
+      {/* 검색 및 필터 */}
       <SubscriptionSearch
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
@@ -180,6 +203,14 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     flexGrow: 1,
+  },
+  addButton: {
+    backgroundColor: '#0066FF',
+    borderRadius: 12,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loadingContainer: {
     flex: 1,
